@@ -61,12 +61,8 @@
         }
 
         @keyframes border-flow {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .login-container h2 {
@@ -142,12 +138,41 @@
             <button type="submit" class="btn">Login</button>
         </form>
         <div class="signup-link">
-            Don't have an account? <a href="#">Sign Up</a>
+            Don't have an account? <a href="#" id="signupLink">Sign Up</a>
+        </div>
+    </div>
+
+    <div id="signupContainer" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+        <div class="login-container" style="width: 400px;">
+            <h2>Create Account</h2>
+            <form id="signupForm">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="newUsername" placeholder="Choose Username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="newPassword" placeholder="Create Password" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="confirmPassword" placeholder="Confirm Password" required>
+                </div>
+                <button type="submit" class="btn">Sign Up</button>
+            </form>
+            <div class="signup-link">
+                Already have an account? <a href="#" id="loginLink">Login</a>
+            </div>
         </div>
     </div>
 
     <script>
         $(document).ready(function() {
+            // Particles JS Configuration
             particlesJS('particles-js', {
                 particles: {
                     number: { value: 80, density: { enable: true, value_area: 800 } },
@@ -160,27 +185,73 @@
                 },
                 interactivity: {
                     detect_on: 'canvas',
-                    events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' }, resize: true },
-                    modes: { grab: { distance: 400, line_linked: { opacity: 1 } }, bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 } }
+                    events: { 
+                        onhover: { enable: true, mode: 'repulse' }, 
+                        onclick: { enable: true, mode: 'push' }, 
+                        resize: true 
+                    },
+                    modes: { 
+                        grab: { distance: 400, line_linked: { opacity: 1 } }, 
+                        bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 } 
+                    }
                 },
                 retina_detect: true
             });
 
+            // Local Storage User Management
+            let users = JSON.parse(localStorage.getItem('quantumUsers')) || [];
+
+            // Login Form Submission
             $('#loginForm').on('submit', function(e) {
                 e.preventDefault();
-                $.ajax({
-                    type: 'POST',
-                    url: 'login.php',
-                    data: $(this).serialize(),
-                    success: function(response) {
-                        if(response === 'success') {
-                            alert('Login Successful!');
-                            window.location.href = 'dashboard.php';
-                        } else {
-                            alert('Invalid credentials');
-                        }
-                    }
-                });
+                const username = $('input[name="username"]').val();
+                const password = $('input[name="password"]').val();
+
+                const user = users.find(u => u.username === username && u.password === password);
+                
+                if (user) {
+                    alert('Login Successful!');
+                    // In a real app, you'd redirect or set session
+                } else {
+                    alert('Invalid credentials');
+                }
+            });
+
+            // Signup Form Submission
+            $('#signupForm').on('submit', function(e) {
+                e.preventDefault();
+                const newUsername = $('input[name="newUsername"]').val();
+                const email = $('input[name="email"]').val();
+                const newPassword = $('input[name="newPassword"]').val();
+                const confirmPassword = $('input[name="confirmPassword"]').val();
+
+                if (newPassword !== confirmPassword) {
+                    alert('Passwords do not match!');
+                    return;
+                }
+
+                const existingUser = users.find(u => u.username === newUsername);
+                if (existingUser) {
+                    alert('Username already exists!');
+                    return;
+                }
+
+                users.push({ username: newUsername, email, password: newPassword });
+                localStorage.setItem('quantumUsers', JSON.stringify(users));
+                
+                alert('Account created successfully!');
+                $('#signupContainer').hide();
+            });
+
+            // Toggle between Login and Signup
+            $('#signupLink').on('click', function(e) {
+                e.preventDefault();
+                $('#signupContainer').show();
+            });
+
+            $('#loginLink').on('click', function(e) {
+                e.preventDefault();
+                $('#signupContainer').hide();
             });
         });
     </script>
